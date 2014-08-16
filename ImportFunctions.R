@@ -16,7 +16,7 @@ ImportToR <- function(Path,ImportName){
     standard <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0")
     ShapeFile<- spTransform(ShapeFile, standard)
   }
-  return ShapeFile
+  return(ShapeFile)
 }
 
 
@@ -24,11 +24,11 @@ ImportToR <- function(Path,ImportName){
 TabShapeRLines <- function(Path,ImportName,ExportName){
   
   setwd(Path)
-  ImportToR(Path,ImportName)
+  ShapeFile <- ImportToR(Path,ImportName)
   
   #Extracts the Data
   Data <- as(ShapeFile, "data.frame")
-
+  
   Data$LineID <- as.numeric(rownames(Data))
   
   #extracts the coodinates and Line IDs
@@ -57,24 +57,24 @@ TabShapeRLines <- function(Path,ImportName,ExportName){
 
 #Imports Point type data
 TabShapeRPoints <- function(Path,ImportName,ExportName){
- 
+  
   setwd(Path)
-  ImportToR(Path,ImportName)
+  ShapeFile <- ImportToR(Path,ImportName)
   
   Data <- as(ShapeFile, "data.frame")
   Data$PointID <- as.numeric(rownames(Data))
   names(Data)[names(Data)== "coords.x1"] <- "Longitude"
   names(Data)[names(Data)== "coords.x2"] <- "Latitude"
-
+  
   filename <- paste(ExportName,".csv", sep = "")
   write.csv(Data, filename, row.names = FALSE)
 }
 
 # Extracts Polygon Type Data
-TabShapeRPolygons <- function(Path,InportName,ExportName){
- 
+TabShapeRPolygons <- function(Path,ImportName,ExportName){
+  
   setwd(Path)
-  ImportToR(Path,ImportName)
+  ShapeFile <- ImportToR(Path,ImportName)
   
   Data <- as(ShapeFile, "data.frame")
   Data$PolygonID <- as.numeric(rownames(Data))
