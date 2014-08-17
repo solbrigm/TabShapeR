@@ -9,17 +9,18 @@ A tool to import ESRI Shapefiles into Tableau using R
 2. Open RStudio
 3. Click the packages button
 4. Click on Install Packages
+![Install Packages Picture](https://cloud.githubusercontent.com/assets/8462624/3945251/7f9f1476-2636-11e4-8823-915eeb7e202a.png)
 6.	Type “rgdal, maptools, sp, rgeos” into the Packages line
 7.	Click Install
 
 ##Running Code
 
-1.	In RStudio, select File > Open File…
-2.	Navigate to TabShapeR.R and select Open
+1.	In RStudio, select File > New File > R Script
+2.	Copy/Paste contents of ImportFunctions.R into new file
 3.	Highlight all code in TabShapeR and click Run
- 
-4.	Select File > Open File…
-5.	Open TabShapeRTemplate.R
+![Run Button](https://cloud.githubusercontent.com/assets/8462624/3945252/7fa04e22-2636-11e4-9cec-b3f26d6713e3.png)
+4.	Select File > New File > R Script
+5.	Copy contents of TabShapeRTemplate.R into new file
 6.	Add the full path of the directory where Shapefile is stored after directory =
   1.	If using Windows, ensure that all “\” characters are replaced with “/” characters or you will receive a “ ‘\U’ used without hex digits” error message
 
