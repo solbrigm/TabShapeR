@@ -37,15 +37,22 @@ TabShapeRLines <- function(Path,ImportName,ExportName){
                       Longitude = numeric(0),
                       LineID = numeric(0),
                       PlotOrder = numeric(0))
+  PlotOrderStart <- 0
   for(i in 1:length(Lines)){
     Line <- Lines[[i]]
     ID <- slot(Line, "ID")
-    coords <- data.frame(slot(slot(Line,"Lines")[[1]],"coords"))
-    coords$PlotOrder <- c(1:nrow(coords))
-    coordinates$Longitude <- c(coordinates$Longitude, coords[,1])
-    coordinates$Latitude <- c(coordinates$Latitude, coords[,2])
-    coordinates$LineID <- c(coordinates$LineID, rep(ID,nrow(coords)))
-    coordinates$PlotOrder <- c(coordinates$PlotOrder, c(1:nrow(coords)))
+    SubID <- 0
+    for(j in 1:length(slot(Line,"Lines"))){
+      SubID <- SubID + 1
+      coords <- data.frame(slot(slot(Line,"Lines")[[j]],"coords"))
+      coords$PlotOrder <- c(PlotOrderStart:(PlotOrderStart + nrow(coords)-1))
+      PlotOrderStart <- (PlotOrderStart + nrow(coords))
+      coordinates$Longitude <- c(coordinates$Longitude, coords[,1])
+      coordinates$Latitude <- c(coordinates$Latitude, coords[,2])
+      coordinates$LineID <- c(coordinates$LineID, rep(ID,nrow(coords)))
+      coordinates$PlotOrder <- c(coordinates$PlotOrder, coords[,3])
+      coordinates$LineSubID <- c(coordinates$LineSubID, rep(SubID,nrow(coords)))
+    }
   }
   
   CombinedData <- merge(Data,coordinates)
