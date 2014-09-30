@@ -84,25 +84,36 @@ TabShapeRPolygons <- function(Path,ImportName,ExportName){
   ShapeFile <- ImportToR(Path,ImportName)
   
   Data <- as(ShapeFile, "data.frame")
-  Data$PolygonID <- as.numeric(rownames(Data))
+  Data$ObjectID <- as.numeric(rownames(Data))
   
   #extracts the coodinates and polygon IDs
-  Polygons <- slot(ShapeFile,"polygons")
+  ObjectList <- slot(ShapeFile,"polygons")
   coordinates <- list(Latitude = numeric(0),
                       Longitude = numeric(0),
                       PolygonID = numeric(0),
+                      ObjectID = numeric(0),
                       PlotOrder = numeric(0))
   
-  #A slow looping aproach
-  for(i in 1:length(Polygons)){
-    Polygon <- Polygons[[i]]
-    ID <- slot(Polygon, "ID")
-    coords <- data.frame(slot(slot(Polygon,"Polygons")[[1]],"coords"))
-    coords$PlotOrder <- c(1:nrow(coords))
-    coordinates$Longitude <- c(coordinates$Longitude, coords[,1])
-    coordinates$Latitude <- c(coordinates$Latitude, coords[,2])
-    coordinates$PolygonID <- c(coordinates$PolygonID, rep(ID,nrow(coords)))
-    coordinates$PlotOrder <- c(coordinates$PlotOrder, c(1:nrow(coords)))
+  #Loops over Objects to extract coordinates
+  PolygonID <- 0
+  for(i in 1:length(ObjectList)){
+    Object <- ObjectList[[i]]
+    ObjectID <- slot(Object, "ID")
+    #Loops over Polygons in Object to extract coordinates
+    for(j in 1:length(slot(Object,"Polygons"))){
+      Polygon <- slot(Object,"Polygons")[[j]]
+      #excludes holes. This could be made an option.
+      if(!slot(Polygon,"hole")){
+        coords <- data.frame(slot(Polygon,"coords"))
+        coords$PlotOrder <- c(1:nrow(coords))
+        coordinates$PlotOrder <- c(coordinates$PlotOrder, c(1:nrow(coords)))
+        coordinates$Longitude <- c(coordinates$Longitude, coords[,1])
+        coordinates$Latitude <- c(coordinates$Latitude, coords[,2])
+        coordinates$ObjectID <- c(coordinates$ObjectID, rep(ObjectID,nrow(coords)))
+        coordinates$PolygonID <-c(coordinates$PolygonID, rep(PolygonID,nrow(coords)))
+        PolygonID <- PolygonID + 1
+      }
+    }
   }
   
   CombinedData <- merge(Data,coordinates)
