@@ -54,6 +54,7 @@ TabShapeRLines <- function(Path,ImportName,ExportName){
       coordinates$LineSubID <- c(coordinates$LineSubID, rep(SubID,nrow(coords)))
     }
   }
+  coordinates <- data.frame(coordinates)
   
   CombinedData <- merge(Data,coordinates)
   
@@ -115,7 +116,7 @@ TabShapeRPolygons <- function(Path,ImportName,ExportName){
       }
     }
   }
-  
+  coordinates <- data.frame(coordinates)
   CombinedData <- merge(Data,coordinates)
   
   filename <- paste(ExportName,".csv", sep = "")
