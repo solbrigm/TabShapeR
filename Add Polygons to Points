@@ -1,0 +1,50 @@
+#Defines location of input files. Edit with your own paths.
+directory = "Directory where shapefile and .csv are located"
+polygon_file = "name of shapefile, no .shp extention"
+point_file = "name of .csv where points are saved"
+output_name = "outfile.csv"
+
+#Required Libraries. Uncomment to install the first time you use.
+#install.packages("sp")
+#install.packages("maptools")
+#install.packages("rgeos")
+#install.packages("rgdal")
+
+#Install Required Packages
+library(sp)
+library(maptools)
+library(rgeos)
+library(rgdal)
+
+#Function for importing shapefiles to R and dealing with projection
+ImportToR <- function(dsn, layer){
+  setwd(dsn)
+  ShapeFile <- readOGR(dsn = dsn, layer = layer)
+  if(!is.na(is.projected(ShapeFile)) && is.projected(ShapeFile)){
+    standard <- CRS("+proj=longlat +ellps=WGS84 +datum=WGS84 +towgs84=0,0,0")
+    ShapeFile<- spTransform(ShapeFile, standard)
+  }
+  return(ShapeFile)
+}
+
+
+#Gets and formats data
+setwd(directory)
+polygons <- ImportToR(directory, polygon_file)
+point_data <- read.csv(file=point_file)
+pts = point_data[,c("Longitude", "Latitude")]  #Selects just the lat/lon fields
+pts = SpatialPoints(pts[complete.cases(pts),]) #Removes nulls and casts into spacial frame
+proj4string(pts) <- proj4string(polygons) #Ensures that the projections match
+
+#Adds the polygon to the points
+pts$data <- over(pts, polygons)
+output <- merge(as.data.frame(pts), point_data, by=c("Latitude", "Longitude"))
+
+
+#Write to CSV
+write.csv(output, file = output_name)
+
+
+
+
+
