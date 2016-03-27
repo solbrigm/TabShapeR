@@ -52,3 +52,15 @@ a.	Do not include any extensions in the name.
 2.	Import All.
 3.	Drag PointID to the Details shelf of the Marks card.
 4.	Double click on Latitude, and then double click on longitude.
+
+Add Polygons to Point Data
+==========================
+
+Given a bunch of Latitude/Longitude data and a polygon ShapeFile, add what Polygon each point belongs to the underlying data. This will perform better than using R-Integration, but will also be less cool.
+
+##Steps
+1. Copy the code from Add Points to Polygon to R Studio
+2. Edit lines 2-5 to put the directory where the files are, the shapefile name, and the name of the .csv file with the lat/lon data
+3. If you have not installed the packages, uncomment lines 7-11 to install the necessary packages
+4. Run the file
+5. New CSV with matching polygons will appear in the specified directory
