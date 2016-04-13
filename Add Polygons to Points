@@ -1,10 +1,4 @@
-#Defines location of input files. Edit with your own paths.
-directory = "Directory where shapefile and .csv are located"
-polygon_file = "name of shapefile, no .shp extention"
-point_file = "name of .csv where points are saved"
-output_name = "outfile.csv"
-
-#Required Libraries. Uncomment to install the first time you use.
+#Required Libraries. Uncomment to install only the first time you use.
 #install.packages("sp")
 #install.packages("maptools")
 #install.packages("rgeos")
@@ -15,6 +9,14 @@ library(sp)
 library(maptools)
 library(rgeos)
 library(rgdal)
+library(plyr)
+
+#Defines location of input files
+directory = "/Users/msolbrig/Documents/Bairros_Algar_Concessao_region"
+polygon_file = "Bairros_Algar_Concessao_region"
+point_file = "points.csv"
+output_name = "outfile.csv"
+combine_points_poly = FALSE
 
 #Function for importing shapefiles to R and dealing with projection
 ImportToR <- function(dsn, layer){
@@ -31,20 +33,71 @@ ImportToR <- function(dsn, layer){
 #Gets and formats data
 setwd(directory)
 polygons <- ImportToR(directory, polygon_file)
-point_data <- read.csv(file=point_file)
-pts = point_data[,c("Longitude", "Latitude")]  #Selects just the lat/lon fields
-pts = SpatialPoints(pts[complete.cases(pts),]) #Removes nulls and casts into spacial frame
+points <- read.csv(file=point_file)
+
+#separate values with nulls in lat/lon from rest of data
+points_null_lat = points[is.na(points['Lat']),]
+points_has_lat = points[!is.na(points['Lat']),]
+
+#turns into spatial data type
+points_coords = subset(points_has_lat, select = c(Lon, Lat))
+points_data = subset(points_has_lat, select=-c(Lon, Lat))
+pts = SpatialPointsDataFrame(points_coords, points_data)
 proj4string(pts) <- proj4string(polygons) #Ensures that the projections match
 
 #Adds the polygon to the points
-pts$data <- over(pts, polygons)
-output <- merge(as.data.frame(pts), point_data, by=c("Latitude", "Longitude"))
+pts_with_polygon <- cbind(as.data.frame(pts), over(pts, polygons))
+
+#Adds the rows with Null lat/lon back in
+output = rbind.fill(pts_with_polygon, points_null_lat)
 
 
 #Write to CSV
+if(combine_points_poly):
+  # function for reshaping the polygons for Tableau
+  ReshapePolygons <- function(ShapeFile){}
+    
+    Data <- as(ShapeFile, "data.frame")
+    Data$ObjectID <- as.numeric(rownames(Data))
+    
+    #extracts the coodinates and polygon IDs
+    ObjectList <- slot(ShapeFile,"polygons")
+    coordinates <- list(Latitude = numeric(0),
+                        Longitude = numeric(0),
+                        PolygonID = numeric(0),
+                        ObjectID = numeric(0),
+                        PlotOrder = numeric(0))
+    
+    #Loops over Objects to extract coordinates
+    PolygonID <- 0
+    for(i in 1:length(ObjectList)){
+      Object <- ObjectList[[i]]
+      ObjectID <- slot(Object, "ID")
+      #Loops over Polygons in Object to extract coordinates
+      for(j in 1:length(slot(Object,"Polygons"))){
+        Polygon <- slot(Object,"Polygons")[[j]]
+        #excludes holes. This could be made an option.
+        if(!slot(Polygon,"hole")){
+          coords <- data.frame(slot(Polygon,"coords"))
+          coords$PlotOrder <- c(1:nrow(coords))
+          coordinates$PlotOrder <- c(coordinates$PlotOrder, c(1:nrow(coords)))
+          coordinates$Longitude <- c(coordinates$Longitude, coords[,1])
+          coordinates$Latitude <- c(coordinates$Latitude, coords[,2])
+          coordinates$ObjectID <- c(coordinates$ObjectID, rep(ObjectID,nrow(coords)))
+          coordinates$PolygonID <-c(coordinates$PolygonID, rep(PolygonID,nrow(coords)))
+          PolygonID <- PolygonID + 1
+        }
+      }
+    }
+    coordinates <- data.frame(coordinates)
+    CombinedData <- merge(Data,coordinates)
+    return(CombinedData)
+  }
+  polydata <- ReshapePolygons(polygons)
+  ouput <- 
+  
+  
+  
 write.csv(output, file = output_name)
-
-
-
 
 
